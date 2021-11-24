@@ -34,6 +34,7 @@ class _HomePageState extends State<HomePage> {
             icon: Icon(Icons.picture_as_pdf),
             onPressed: () {
               createPDF();
+              addName();
             },
           ),
         ],
@@ -44,7 +45,6 @@ class _HomePageState extends State<HomePage> {
               itemCount: image.length,
               itemBuilder: (BuildContext context, int index) {
                 return Container(
-                  height: 400,
                   width: double.infinity,
                   margin: EdgeInsets.all(8),
                   child: Image.file(
@@ -82,25 +82,37 @@ class _HomePageState extends State<HomePage> {
       builder: (ctx) => AlertDialog(
         title: Text("Add File Name"),
         content: TextField(
+          decoration: InputDecoration(
+            border: InputBorder.none,
+            hintText: "Enter the name",
+            fillColor: Colors.grey.withOpacity(0.3),
+            filled: true,
+          ),
           controller: fileNameController,
         ),
         actions: <Widget>[
           FlatButton(
             onPressed: () {
-              savePDF();
+              savePDF(fileNameController.text);
               Navigator.of(ctx).pop();
             },
             child: Text("Save"),
+          ),
+          FlatButton(
+            onPressed: () {
+              Navigator.of(ctx).pop();
+            },
+            child: Text("Cancel"),
           ),
         ],
       ),
     );
   }
 
-  savePDF() async {
+  savePDF(String name) async {
     try {
-      final dir = await getExternalStorageDirectory();
-      final file = File("${dir!.path}/${fileNameController.text}.pdf");
+      final dir = await getApplicationDocumentsDirectory();
+      final file = File("${dir!.path}/file.pdf");
       await file.writeAsBytes(await pdf.save());
 
       showMessage("Success", "Pdf is saved in Storage");
@@ -126,9 +138,9 @@ class _HomePageState extends State<HomePage> {
 
     setState(() {
       if (pickedFile == null) {
-        image.add(File(pickedFile!.path));
-      } else {
         showMessage("Error", "Image is not Selected");
+      } else {
+        image.add(File(pickedFile.path));
       }
     });
   }
