@@ -111,7 +111,7 @@ class _HomePageState extends State<HomePage> {
 
   savePDF(String name) async {
     try {
-      final dir = await getApplicationDocumentsDirectory();
+      final dir = await getExternalStorageDirectory();
       final file = File("${dir!.path}/file.pdf");
       await file.writeAsBytes(await pdf.save());
 
