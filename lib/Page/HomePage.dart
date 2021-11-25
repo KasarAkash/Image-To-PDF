@@ -33,8 +33,12 @@ class _HomePageState extends State<HomePage> {
           IconButton(
             icon: Icon(Icons.picture_as_pdf),
             onPressed: () {
-              createPDF();
-              addName();
+              if (image.isEmpty) {
+                showMessage("Error", "Images are not Selected");
+              } else {
+                createPDF();
+                addName();
+              }
             },
           ),
         ],
@@ -42,6 +46,7 @@ class _HomePageState extends State<HomePage> {
       body: image.isEmpty
           ? SizedBox()
           : ListView.builder(
+              physics: BouncingScrollPhysics(),
               itemCount: image.length,
               itemBuilder: (BuildContext context, int index) {
                 return Container(
@@ -76,46 +81,13 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  addName() {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text("Add File Name"),
-        content: TextField(
-          decoration: InputDecoration(
-            border: InputBorder.none,
-            hintText: "Enter the name",
-            fillColor: Colors.grey.withOpacity(0.3),
-            filled: true,
-          ),
-          controller: fileNameController,
-        ),
-        actions: <Widget>[
-          FlatButton(
-            onPressed: () {
-              savePDF(fileNameController.text);
-              Navigator.of(ctx).pop();
-            },
-            child: Text("Save"),
-          ),
-          FlatButton(
-            onPressed: () {
-              Navigator.of(ctx).pop();
-            },
-            child: Text("Cancel"),
-          ),
-        ],
-      ),
-    );
-  }
-
   savePDF(String name) async {
     try {
       final dir = await getExternalStorageDirectory();
-      final file = File("${dir!.path}/file.pdf");
+      final file = File("${dir!.path}/$name.pdf");
       await file.writeAsBytes(await pdf.save());
 
-      showMessage("Success", "Pdf is saved in Storage");
+      showMessage("Success", "Pdf is saved in ${dir.path}");
     } catch (e) {
       showMessage("Error", e.toString());
     }
@@ -143,5 +115,44 @@ class _HomePageState extends State<HomePage> {
         image.add(File(pickedFile.path));
       }
     });
+  }
+
+  addName() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text("Add File Name"),
+        content: TextField(
+          decoration: InputDecoration(
+            border: InputBorder.none,
+            hintText: "Enter the name",
+            fillColor: Colors.grey.withOpacity(0.3),
+            filled: true,
+          ),
+          controller: fileNameController,
+        ),
+        actions: <Widget>[
+          FlatButton(
+            onPressed: () {
+              savePDF(fileNameController.text);
+              setState(() {
+                image = [];
+              });
+              Navigator.of(ctx).pop();
+            },
+            child: Text("Save"),
+          ),
+          FlatButton(
+            onPressed: () {
+              setState(() {
+                fileNameController.clear();
+              });
+              Navigator.of(ctx).pop();
+            },
+            child: Text("Cancel"),
+          ),
+        ],
+      ),
+    );
   }
 }
